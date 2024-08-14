@@ -1,11 +1,17 @@
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { BsGoogle } from "react-icons/bs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import app from "../../firebase/firebase.config";
 
 
 const Login = () => {
-    const [showPassword,setShowPassword] = useState(false)
+    const [showPassword,setShowPassword] = useState(false);
+    const navigate = useNavigate();
+    const provider = new GoogleAuthProvider();
+    const auth = getAuth(app);
 
    const handleLogIn = e =>{
         e.preventDefault();
@@ -14,8 +20,26 @@ const Login = () => {
         const password = form.password.value;
         console.log(email,password);
     }
-    const handleGoogleLogIn = () =>{
-
+    const handleGoogleLogIn = async () =>{
+        try {
+            const result = await signInWithPopup(auth, provider);
+            console.log(result);
+            Swal.fire({
+                icon: "success",
+                title: "Successfully Logged in",
+                showConfirmButton: false,
+                timer: 1500
+              });
+            setTimeout(() => {
+                navigate(location?.state? location.state : "/");
+            }, 2000);
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: "error",
+                text: "Failed to login",
+              });
+        }
     }
     return (
         <div>

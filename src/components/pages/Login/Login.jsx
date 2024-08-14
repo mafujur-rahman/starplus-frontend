@@ -1,15 +1,17 @@
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { BsGoogle } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import app from "../../firebase/firebase.config";
+import { AuthContext } from "../../context/AuthProvider";
 
 
 const Login = () => {
     const [showPassword,setShowPassword] = useState(false);
     const navigate = useNavigate();
+    const {signIn} = useContext(AuthContext)
     const provider = new GoogleAuthProvider();
     const auth = getAuth(app);
 
@@ -19,6 +21,26 @@ const Login = () => {
         const email = form.email.value;
         const password = form.password.value;
         console.log(email,password);
+
+        signIn(email, password)
+        .then(result =>{
+            console.log(result.data);
+            Swal.fire({
+                icon: "success",
+                title: "Successfully log in",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            navigate("/")
+        })
+        .then(error =>{
+            console.error('Error:', error.message);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: error.message,
+            });
+        })
     }
     const handleGoogleLogIn = async () =>{
         try {
@@ -34,11 +56,12 @@ const Login = () => {
                 navigate(location?.state? location.state : "/");
             }, 2000);
         } catch (error) {
-            console.error(error);
+            console.error('Error:', error.message);
             Swal.fire({
                 icon: "error",
-                text: "Failed to login",
-              });
+                title: "Oops...",
+                text: error.message,
+            });
         }
     }
     return (

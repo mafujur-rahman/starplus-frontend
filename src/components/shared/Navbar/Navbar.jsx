@@ -20,6 +20,8 @@ const Navbar = () => {
                         user ? 
                         <>
                         <li><button onClick={handleLogout}>Logout</button></li>
+                        <li><NavLink to="/add-product"><button>Add Product</button></NavLink></li>
+
                         </>
                         :
                         <>

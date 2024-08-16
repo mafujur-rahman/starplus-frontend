@@ -24,8 +24,8 @@ const ProductCards = () => {
         limit: 9,
         search: debouncedSearch,
         category: selectedCategory,
-        brand: selectedBrand,
-        priceRange: selectedPriceRange,
+        name: selectedBrand,
+        price: selectedPriceRange,
         sort: sortOption,
       }
     });
@@ -86,8 +86,8 @@ const ProductCards = () => {
       <div className="container mx-auto">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-8 text-gray-800">Our Products</h1>
         {/* Search input */}
-        <div className="flex justify-center my-10">
-          <div className="w-full md:w-1/4 lg:w-1/5 my-4 md:mb-0 flex justify-center items-center">
+        <div className="flex flex-col md:flex-row justify-center my-10">
+          <div className="w-full md:w-1/2 lg:w-1/3 my-4 md:mb-0 flex justify-center items-center">
             <input
               type="text"
               value={search}
@@ -103,9 +103,9 @@ const ProductCards = () => {
             </button>
           </div>
         </div>
-        <div className="flex flex-wrap justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row flex-wrap justify-between items-center mb-8">
           {/* Category filter dropdown */}
-          <div className="w-full md:w-1/4 lg:w-1/5 mb-4 md:mb-0">
+          <div className="w-full md:w-1/2 lg:w-1/5 mb-4 md:mb-0">
             <label className="mr-2 font-medium text-lg text-gray-700">Filter by Category:</label>
             <select
               value={selectedCategory}
@@ -121,7 +121,7 @@ const ProductCards = () => {
             </select>
           </div>
           {/* Brand filter dropdown */}
-          <div className="w-full md:w-1/4 lg:w-1/5 mb-4 md:mb-0">
+          <div className="w-full md:w-1/2 lg:w-1/5 mb-4 md:mb-0">
             <label className="mr-2 font-medium text-lg text-gray-700">Filter by Brand:</label>
             <select
               value={selectedBrand}
@@ -129,15 +129,13 @@ const ProductCards = () => {
               className="border px-3 py-2 rounded-md w-full"
             >
               <option value="">All Brands</option>
-              <option value="TechNova">TechNova</option>
-              <option value="GigaTech">GigaTech</option>
-              <option value="SmartGadgets">SmartGadgets</option>
-              <option value="PixelPro">PixelPro</option>
-              <option value="ZenWorks">ZenWorks</option>
+              {data.products.map((brand, index) => (
+                <option key={index} value={brand.name}>{brand.name}</option>
+              ))}
             </select>
           </div>
           {/* Price filter dropdown */}
-          <div className="w-full md:w-1/4 lg:w-1/5 mb-4 md:mb-0">
+          <div className="w-full md:w-1/2 lg:w-1/5 mb-4 md:mb-0">
             <label className="mr-2 font-medium text-lg text-gray-700">Filter by Price:</label>
             <select
               value={selectedPriceRange}
@@ -146,14 +144,12 @@ const ProductCards = () => {
             >
               <option value="">All Prices</option>
               <option value="0-500">Under $500</option>
-              <option value="500-1000">$500-$1000</option>
-              <option value="1000-1500">$1000-$1500</option>
-              <option value="1500-2000">$1500-$2000</option>
-              <option value="2000-">Above $2000</option>
+              <option value="0-1000">Under $1000</option>
+
             </select>
           </div>
           {/* Sort buttons */}
-          <div className="w-full md:w-1/4 lg:w-1/5 mb-4 md:mb-0">
+          <div className="w-full md:w-1/2 lg:w-1/5 mb-4 md:mb-0">
             <label className="mr-2 font-medium text-lg text-gray-700">Sort by:</label>
             <select
               value={sortOption}
@@ -169,7 +165,7 @@ const ProductCards = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mx-auto w-fit">
           {data.products.slice((page - 1) * 9, page * 9).map((product) => (
-            <div key={product._id} className="card bg-[#F1F8E8] w-96 shadow-xl">
+            <div key={product._id} className="card bg-[#F1F8E8] w-full md:w-96 shadow-xl">
               <figure className="px-10 pt-10">
                 <img
                   src={product.image}
@@ -190,11 +186,28 @@ const ProductCards = () => {
         </div>
       </div>
       {/* Pagination section */}
-      <div className="w-full flex justify-center mt-10 mb-4">
-        <button onClick={() => handlePageChange(page - 1)} disabled={page === 1 || totalPages === 0} className="btn bg-[#55AD9B] text-white mr-2">Previous</button>
-        {pageButtons}
-        <button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages || totalPages === 0} className="btn bg-[#55AD9B] text-white ml-2">Next</button>
+      <div className="w-full flex flex-col items-center mt-10 mb-4">
+        <div className="flex items-center mb-2">
+          <button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page === 1 || totalPages === 0}
+            className="btn bg-[#55AD9B] text-white px-4 py-2 mr-2 rounded-lg text-sm"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page === totalPages || totalPages === 0}
+            className="btn bg-[#55AD9B] text-white px-4 py-2 ml-2 rounded-lg text-sm"
+          >
+            Next
+          </button>
+        </div>
+        <div className="flex flex-wrap justify-center">
+          {pageButtons}
+        </div>
       </div>
+
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { debounce } from "lodash";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { FaSearch } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 
@@ -17,15 +17,15 @@ const ProductCards = () => {
   // Debounce the search function
   const debounceSearch = debounce((value) => setDebouncedSearch(value), 500);
 
-  const fetchProducts = async () => {
-    const response = await axios.get('http://localhost:5000/products', {
+  const fetchProducts = async ({ queryKey }) => {
+    const [, { page, debouncedSearch, selectedCategory, selectedBrand, sortOption }] = queryKey;
+    const response = await axios.get('https://starplus-backend.vercel.app/products', {
       params: {
         page,
         limit: 9,
         search: debouncedSearch,
         category: selectedCategory,
         name: selectedBrand,
-        price: selectedPriceRange,
         sort: sortOption,
       }
     });
@@ -33,7 +33,7 @@ const ProductCards = () => {
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['Products', { page, debouncedSearch, selectedCategory, selectedBrand, selectedPriceRange, sortOption }],
+    queryKey: ['Products', { page, debouncedSearch, selectedCategory, selectedBrand, sortOption }],
     queryFn: fetchProducts,
     keepPreviousData: true,
   });
@@ -41,6 +41,16 @@ const ProductCards = () => {
   const handleSearchClick = () => {
     debounceSearch(search);
   };
+
+  const filteredProducts = useMemo(() => {
+    if (!selectedPriceRange || selectedPriceRange === "all" || !data?.products) return data?.products || [];
+
+    const [minPrice, maxPrice] = selectedPriceRange.split('-').map(price => parseFloat(price));
+    return data.products.filter(product => {
+      const productPrice = parseFloat(product.price);
+      return productPrice >= minPrice && productPrice <= maxPrice;
+    });
+  }, [selectedPriceRange, data?.products]);
 
   if (isLoading) return (
     <div>
@@ -50,9 +60,6 @@ const ProductCards = () => {
   );
 
   if (error) return <p>Error: {error.message}</p>;
-
-  // Filter products based on selected options
-  const filteredProducts = data.products;
 
   // Calculate total pages
   const totalPages = Math.ceil(data.total / 9);
@@ -129,8 +136,8 @@ const ProductCards = () => {
               className="border px-3 py-2 rounded-md w-full"
             >
               <option value="">All Brands</option>
-              {data.products.map((brand, index) => (
-                <option key={index} value={brand.name}>{brand.name}</option>
+              {data.products.map((product, index) => (
+                <option key={index} value={product.name}>{product.name}</option>
               ))}
             </select>
           </div>
@@ -142,10 +149,9 @@ const ProductCards = () => {
               onChange={(e) => setSelectedPriceRange(e.target.value)}
               className="border px-3 py-2 rounded-md w-full"
             >
-              <option value="">All Prices</option>
+              <option value="all">All Prices</option>
               <option value="0-500">Under $500</option>
               <option value="0-1000">Under $1000</option>
-
             </select>
           </div>
           {/* Sort buttons */}
@@ -164,7 +170,7 @@ const ProductCards = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mx-auto w-fit">
-          {data.products.slice((page - 1) * 9, page * 9).map((product) => (
+          {filteredProducts.map((product) => (
             <div key={product._id} className="card bg-[#F1F8E8] w-full md:w-96 shadow-xl">
               <figure className="px-10 pt-10">
                 <img
@@ -184,30 +190,25 @@ const ProductCards = () => {
             </div>
           ))}
         </div>
-      </div>
-      {/* Pagination section */}
-      <div className="w-full flex flex-col items-center mt-10 mb-4">
-        <div className="flex items-center mb-2">
+        {/* Pagination buttons */}
+        <div className="flex flex-wrap justify-center space-x-2 mt-8">
           <button
             onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1 || totalPages === 0}
-            className="btn bg-[#55AD9B] text-white px-4 py-2 mr-2 rounded-lg text-sm"
+            className={`btn text-white ${page === 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1d4983]'}`}
+            disabled={page === 1}
           >
             Previous
           </button>
+          {pageButtons}
           <button
             onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages || totalPages === 0}
-            className="btn bg-[#55AD9B] text-white px-4 py-2 ml-2 rounded-lg text-sm"
+            className={`btn text-white ${page === totalPages ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1d4983]'}`}
+            disabled={page === totalPages}
           >
             Next
           </button>
         </div>
-        <div className="flex flex-wrap justify-center">
-          {pageButtons}
-        </div>
       </div>
-
     </div>
   );
 };
